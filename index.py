@@ -11,7 +11,7 @@ print(plotly.__version__)
 # Read the data table of the last experiment. 
 df = pd.read_csv('./test1.csv')
 
-fig = px.line(df, x = 'Time', y = 'Frequency', title='Frequency Shift Over Time')
+fig = px.line(df, x = 'Time', y = 'Frequency', title='Frequency Over Time')
 fig.show()
 
 # Setting up the root for the GUI program. 
