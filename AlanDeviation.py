@@ -2,12 +2,20 @@ import allantools
 import matplotlib.pyplot as plt
 import numpy as np
 
+'''
+@Todo: switch from matplotlib to plotly (looks nicer)
+import plotly
+import plotly.express as px
+'''
+
 # Class to calculate and display Adam deviation. 
 class AlanDeviation:
     def __init__(self, title="Alan deviation with varying Tau values (x-axis)"):
         self._title = title
         self.y = []
-        self.tau = np.linspace(0, 100, 99)
+        self.tau = np.linspace(0, 60, 60)
+        # self.tau = np.linspace(0, 5, 10)
+
         self.tau_result = []
 
     def generate_noise(self, N=10000):
@@ -28,23 +36,13 @@ class AlanDeviation:
         self.alan_dev_result = ad               # Alan deviations per tau
         self.error = ade                        # errors of alan adeviations
         self.data_points = adn                  # values of N for t
+        return ad
 
     def show_plot(self):
         self.calculate_adev()
-        plt.plot(self.tau_result, self.alan_dev_result)  # Plot the results
+        plt.plot(self.tau_result, self.alan_dev_result)  # Plot the results || Alternatively = plt.loglog
         plt.xlabel("Tau (s)")
         plt.ylabel("Alan deviation")
         plt.title("Alan deviation with varying Tau values (x-axis)")
         plt.grid()
         plt.show()
-
-# Read values out of measurement file. 
-
-
-
-
-
-# Pass data and display Alan deviation.
-a = AlanDeviation()
-a.generate_noise()
-a.show_plot()
