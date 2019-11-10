@@ -1,7 +1,7 @@
 # A Graphical Interface to Interpretate Data from QCM Sensors
 ## Frequency Test 1
 ![Test Image 1](FrequencyTime-Test1.png)
-## Current Standard Deviation is 4.58 and Alan Deviation Varies overtime
+## Current Standard Deviation is 4.58 and Alan Deviation Varies 0.03-0.15 depending on tau
 ![Test Image 2](AlanDev-Test1.png)
 
 
