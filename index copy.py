@@ -32,40 +32,34 @@ def main():
 def collect_data():
     # fwf stands for 'fixed with formatted lines'
     _data = pd.read_fwf('./data/Roomtemp.txt', sep=" ",
-                        header=None, index=False).tail(7200)
+                        header=None, index=False)
     _data.columns = ["Date", "Time", "Frequency", "Temperature"]
     data_frequency = _data["Frequency"].values
     fig = px.line(_data, x='Time', y='Frequency',
                   title='Frequency Over Time')
 
     # Regular frequency graph.
-    # fig.show()
+    fig.show()
 
-    # Calculate standard deviation, media, average.
-    mu = np.median(data_frequency)
-    sigma = np.std(data_frequency)
-    avg = np.average(data_frequency)
+    print('The standard deviation is...', np.std(data_frequency))
+    print('The standard median is...', np.median(data_frequency))
+    print('The standard average is...', np.average(data_frequency))
+
+    mu = 4953184
+    sigma = 4.58
+    # sigma = 0.12
     n_samples = len(data_frequency)
-
-    print('The standard deviation is...', sigma)
-    print('The median is...', mu)
-    print('The average is...', avg)
-    print('The amount of samples is...', n_samples)
 
     # Normal distribution.
     s = np.random.normal(mu, sigma, n_samples)
 
     # Create the bins and histogram
     # set to 10 for accurate results.
-    bin_amount = 40
-    count, bins, ignored = plt.hist(data_frequency, bin_amount normed=True)
-    print("Count", len(count))
-    print("Bin", len(bins))
+    count, bins, ignored = plt.hist(s, 40, normed=True)
 
     # Determine the height of the normal distribution. According to the bins.
-    # height_normal_dist = 1/(sigma * np.sqrt(2 * np.pi)) * \
-    #     np.exp(- (bins - mu)**2 / (2 * sigma**2))
-    height_normal_dist = count
+    height_normal_dist = 1/(sigma * np.sqrt(2 * np.pi)) * \
+        np.exp(- (bins - mu)**2 / (2 * sigma**2))
     max_height = max(height_normal_dist)
     cutoff_3db_height = max_height/np.sqrt(2)
 
