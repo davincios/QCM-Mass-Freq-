@@ -20,7 +20,7 @@ def get_standard_metrics(data):
     print('The average is...', avg)
     print('The amount of samples is...', n_samples)
 
-    return (mu, sigma, n_samples, avg)
+    return mu, sigma, n_samples
 
 
 # Setting up the main loop.
@@ -38,11 +38,11 @@ def main():
     # Alternative, if the changes are small over time, a.logspace_tau()
     a.add_data(data)
     # a.logspace_tau()
-    a.show_plot()
+    # a.show_plot()
 
 
 # Returns the data of the last experiment (38 000 seconds / samples).
-def collect_data(show_fig):
+def collect_data(show_fig=False):
     _data = pd.read_fwf('./data/Roomtemp.txt', sep=" ",
                         header=None, index=False)
     _data.columns = ["Date", "Time", "Frequency", "Temperature"]
@@ -91,7 +91,7 @@ def get_temperature_box_data(show_fig=False, print_metrics=False):
 
 
 # Calculates the Q value, based on creating a normal distriubtion(standard deviation, mean) of the 38 000 test.
-def q_factor_normal_dist(data):
+def q_factor_normal_dist(data=collect_frequency_data()):
     (mu, sigma, n_samples) = get_standard_metrics(data)
     # Normal distribution.
     s = np.random.normal(mu, sigma, n_samples)
@@ -119,8 +119,8 @@ def q_factor_normal_dist(data):
 
     # What is the delta frequency? 
     delta = abs(mu-frequency_3db)
-    q_factor = mu/(2*delta_frequency)
-    print('The Q factor for the normal distributino is:' q_factor)
+    q_factor = mu/(2*delta)
+    print('The Q factor for the normal distributino is:', q_factor)
 
     return q_factor
 
@@ -128,4 +128,4 @@ def q_factor_normal_dist(data):
 # Calculates the Q value, based on creating a normal distriubtion(standard deviation, mean) of the 38 000 test.
 # Run main
 main()
-q_factor_normal_dist
+q_factor_normal_dist()
