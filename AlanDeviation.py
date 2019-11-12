@@ -13,7 +13,7 @@ class AlanDeviation:
     def __init__(self, title="Alan deviation with varying Tau values (x-axis)"):
         self._title = title
         self.y = []
-        self.tau = np.linspace(0, 60, 60)
+        self.tau = np.linspace(0, 100, 1000)
         # self.tau = np.linspace(0, 5, 10)
 
         self.tau_result = []

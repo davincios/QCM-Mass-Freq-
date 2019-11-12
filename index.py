@@ -8,9 +8,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+# Helper functions.
+def get_standard_metrics(data):
+    mu = np.median(data)
+    sigma = np.std(data)
+    avg = np.average(data)
+    n_samples = len(data)
+
+    print('The standard deviation is...', sigma)
+    print('The median is...', mu)
+    print('The average is...', avg)
+    print('The amount of samples is...', n_samples)
+
+    return (mu, sigma, n_samples, avg)
+
+
 # Setting up the main loop.
-
-
 def main():
     print("\n------------------------WELCOME TO THE ULTIMATE QCM ANALYZER) ----------------------------------\n")
     print("Today we'll discover which QCM Device will have the most spice!")
@@ -24,87 +37,95 @@ def main():
     a = AlanDeviation()
     # Alternative, if the changes are small over time, a.logspace_tau()
     a.add_data(data)
-    a.logspace_tau()
-    # a.show_plot()
+    # a.logspace_tau()
+    a.show_plot()
 
 
-# Read the data table of the last experiment.
-def collect_data():
-    # fwf stands for 'fixed with formatted lines'
+# Returns the data of the last experiment (38 000 seconds / samples).
+def collect_data(show_fig):
     _data = pd.read_fwf('./data/Roomtemp.txt', sep=" ",
-                        header=None, index=False).tail(7200)
+                        header=None, index=False)
     _data.columns = ["Date", "Time", "Frequency", "Temperature"]
-    data_frequency = _data["Frequency"].values
-    fig = px.line(_data, x='Time', y='Frequency',
-                  title='Frequency Over Time')
+    if show_fig:
+        fig = px.line(_data, x='Time', y='Frequency',
+                      title='Frequency Over Time')
+        fig.show()
 
-    # Regular frequency graph.
-    # fig.show()
+    return _data
 
-    # Calculate standard deviation, media, average.
-    mu = np.median(data_frequency)
-    sigma = np.std(data_frequency)
-    avg = np.average(data_frequency)
-    n_samples = len(data_frequency)
+# Returns the frequency data only. Data standard value is data of last experiment.
 
-    print('The standard deviation is...', sigma)
-    print('The median is...', mu)
-    print('The average is...', avg)
-    print('The amount of samples is...', n_samples)
 
-    # Normal distribution.
-    s = np.random.normal(mu, sigma, n_samples)
+def collect_frequency_data(data=collect_data(), show_fig=False, print_metrics=False):
+    data_frequency = data["Frequency"].values
 
-    # Create the bins and histogram
-    # set to 10 for accurate results.
-    bin_amount = 40
-    count, bins, ignored = plt.hist(data_frequency, bin_amount normed=True)
-    print("Count", len(count))
-    print("Bin", len(bins))
+    if print_metrics:
+        print('Frequency standard metrics:')
+        get_standard_metrics(data_frequency)
 
-    # Determine the height of the normal distribution. According to the bins.
-    # height_normal_dist = 1/(sigma * np.sqrt(2 * np.pi)) * \
-    #     np.exp(- (bins - mu)**2 / (2 * sigma**2))
-    height_normal_dist = count
-    max_height = max(height_normal_dist)
-    cutoff_3db_height = max_height/np.sqrt(2)
-
-    # What is the value of the correct bin?
-    sorted_height_dist = sorted(height_normal_dist)
-    cutoff_bin_index = np.digitize(
-        np.array(cutoff_3db_height), sorted_height_dist, right=True)
-    bin_value = sorted_height_dist[cutoff_bin_index]
-    index_cutoff_in_dist = np.where(height_normal_dist == bin_value)[0][0]
-    element = height_normal_dist[index_cutoff_in_dist]
-
-    # The bin value of the frequency @ cut off position.
-    frequency_cutoff = bins[index_cutoff_in_dist]
-    delta_frequency = abs(mu - frequency_cutoff)
-    q_factor = mu/(2*delta_frequency)
-
-    print('THE Q FACTOR!!!!', q_factor)
-    print('Delta frequency cutoff', delta_frequency)
-    print('Frequency cutoff', frequency_cutoff)
-    print('bin value', bin_value)
-    print('index_of_cutoff_in_dist',  index_cutoff_in_dist)
-    print('Element cut height normal dist', element)
-
-    # To which bin does the cut off height belong?
-    # height_bin_index = height_normal_dist[cutoff_bin_value]
-    # print('height_bin_index', height_bin_index)
-
-    # Print values
-    print('Height_normal_dist', height_normal_dist)
-    print('Max value of height normal list', max_height)
-
-    # Plot the distribution curve
-    plt.plot(bins, height_normal_dist, linewidth=3, color='y')
-    plt.title('Frequency with Normal distribution, Sigma = {}'.format(sigma))
-    plt.xlabel('Frequency (zoomed in)')
-    plt.show()
+    if show_fig:
+        fig = px.line(data, x='Time', y='Frequency',
+                      title='Frequency Over Time')
+        fig.show()
 
     return data_frequency
 
+# Returns data of the environmnent box.
 
+
+def get_temperature_box_data(show_fig=False, print_metrics=False):
+    _data = pd.read_fwf('./data/Arduino control box.txt', sep=" ",
+                        header=None, index=False)
+    _data.columns = ["Temperature"]
+    data_temperature = _data["Temperature"].values
+
+    if print_metrics:
+        print('Temperature standard metrics:')
+        get_standard_metrics(data_temperature)
+
+    if show_fig:
+        plt.plot(data_temperature, title='Temperature over time')
+        plt.show()
+
+    return data_temperature
+
+
+# Calculates the Q value, based on creating a normal distriubtion(standard deviation, mean) of the 38 000 test.
+def q_factor_normal_dist(data):
+    (mu, sigma, n_samples) = get_standard_metrics(data)
+    # Normal distribution.
+    s = np.random.normal(mu, sigma, n_samples)
+
+    # Convert the normal distribution into a histogram.
+    bin_amount = 100
+    count, bins, ignored = plt.hist(s, bin_amount, normed=True)
+    # Height of the normal dist@ check the formula for the 
+    y = 1/(sigma * np.sqrt(2 * np.pi)) * \
+        np.exp(- (bins - mu)**2 / (2 * sigma**2))
+    amplitude = max(y)
+    y_3db = amplitude/np.sqrt(2)
+    
+    # In what bucket value falls the 3db cutoff?
+    y_sorted = sorted(y)
+    y_sorted_index_3db = np.digitize(
+        np.array(y_3db), y_sorted, right=True)
+    y_3db_bin = y_sorted[y_sorted_index_3db]
+
+    # At what index is the bin value in the unsorted normal distribution? 
+    bin_3db_index = np.where(y == y_3db_bin)[0][0]
+
+    # What is the frequency (x value) at the 3db cutoff?
+    frequency_3db = bins[bin_3db_index]
+
+    # What is the delta frequency? 
+    delta = abs(mu-frequency_3db)
+    q_factor = mu/(2*delta_frequency)
+    print('The Q factor for the normal distributino is:' q_factor)
+
+    return q_factor
+
+
+# Calculates the Q value, based on creating a normal distriubtion(standard deviation, mean) of the 38 000 test.
 # Run main
 main()
+q_factor_normal_dist
