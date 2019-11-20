@@ -11,20 +11,25 @@ import numpy as np
 # Setting up the main loop.
 def main():
     # Setup variable for the seperate tests
-    # Clean data, first 400 is faulty.
-    water_test_19_nov = collect_frequency_data('WaterTest-19-Nov.txt', True)
-    first_test_11_nov = collect_frequency_data('Roomtemp.txt', True)
+    test_data = collect_frequency_data(
+        'tube droplet 20-11.txt', False).values
 
-    # y2 = collect_frequency_data('WaterTest-19-Nov.txt')
-    # plot_data(y2, 'Temperature over Time', 'Temperature (c)')
+    # plot data
+    plot_data(test_data)
 
-    # Get q factor with standard deviation. 
-    q1 = q_factor_normal_dist(water_test_19_nov, False)
-    q2 = q_factor_normal_dist(first_test_11_nov, False)
-    # Get q factor with alan deviation. 
-    q1 = q_factor_normal_dist(water_test_19_nov, True)
-    q2 = q_factor_normal_dist(first_test_11_nov, True)
+    # Frequency shift.
+    min_value = min(test_data)
+    max_value = max(test_data)
 
+    # Frequency shift not always correct, due to settling. 
+    frequency_shift = max_value - min_value
+
+    print("The min value is", min_value)
+    print("The max value is", max_value)
+    print("The frequency shift", frequency_shift)
+
+    # q_factor_normal_dist(test_data, False)
+    # q_factor_normal_dist(test_data, True)
 
 
 # Helper functions.
@@ -53,11 +58,14 @@ def plot_data(y_data, title='Frequency over Time', y_label='Frequency (Hz)', x_l
 
 
 # Returns the data of the last experiment (38 000 seconds / samples).
-def collect_data(data_file_name, show_fig=False):
+def collect_data(data_file_name, show_fig=False, is_open_qcm_file=False):
     _data = pd.read_fwf('./data/{}'.format(data_file_name), sep=" ",
                         header=None, index=False)
-    _data.columns = ["Date", "Time", "Frequency", "Temperature"]
+    if is_open_qcm_file:
+        _data.columns = ["Date", "Time", "Frequency", "Temperature"]
+
     if show_fig:
+        _data.columns = ["Frequency"]
         plot_data(_data, title=data_file_name)
 
     return _data
@@ -65,24 +73,24 @@ def collect_data(data_file_name, show_fig=False):
 # Returns the data of the last experiment (38 000 seconds / samples).
 
 
-def collect_temperature_data(data_file_name, show_fig=True):
-    _data = pd.read_fwf('./data/{}'.format(data_file_name), sep=" ",
-                        header=None, index=False)
-    _data.columns = ["Date", "Time", "Frequency", "Temperature"]
-    _temperature_data = _data["Temperature"]
+def collect_temperature_data(data_file_name, show_fig=True, is_open_qcm_file=False):
+    data_temperature = collect_data(data_file_name)
+    if is_open_qcm_file:
+        data_temperature = data_temperature["Temperature"]
+
     if show_fig:
-        plot_data(_temperature_data, 'Time (s)',
-                  'Temperature (c)', 'Temperature over time')
+        plot_data(data_temperature, title=data_file_name)
 
-    return _temperature_data
-
+    return data_temperature
 
 # Returns the frequency data only. Data standard value is data of last experiment.
 
 
-def collect_frequency_data(data_file_name, show_fig=False, print_metrics=False):
-    data = collect_data(data_file_name)
-    data_frequency = data["Frequency"].values[400:4800]
+def collect_frequency_data(data_file_name, show_fig=False, print_metrics=False, is_open_qcm_file=False):
+    data_frequency = collect_data(data_file_name)
+
+    if is_open_qcm_file:
+        data_frequency = data_frequency["Frequency"]
 
     if print_metrics:
         print('Frequency standard metrics:')
@@ -162,11 +170,12 @@ def q_factor_normal_dist(data, is_alan_dev=False, show_fig=False):
     delta = abs(mu-frequency_3db)
     q_factor = (mu/(2*delta))
 
-    if is_alan_dev: 
-        print('[Q Factor]: {}K [ADEV]: {}'.format(round(q_factor/1000, 0), round(sigma, 2)))
+    if is_alan_dev:
+        print('[Q Factor]: {}K [ADEV]: {}'.format(
+            round(q_factor/1000, 0), round(sigma, 2)))
     else:
-        print('[Q Factor]: {}K [SDEV]: {}'.format(round(q_factor/1000, 0), round(sigma, 2)))
-
+        print('[Q Factor]: {}K [SDEV]: {}'.format(
+            round(q_factor/1000, 0), round(sigma, 2)))
 
     return q_factor
 
@@ -205,3 +214,15 @@ Todos:
 
 
 '''
+
+
+# def get_q_factors_first_experiments():
+#     water_test_19_nov = collect_frequency_data('WaterTest-19-Nov.txt', True)
+#     first_test_11_nov = collect_frequency_data('Roomtemp.txt', True)
+
+#     # Get q factor with standard deviation.
+#     q1 = q_factor_normal_dist(water_test_19_nov, False)
+#     q2 = q_factor_normal_dist(first_test_11_nov, False)
+#     # Get q factor with alan deviation.
+#     q1 = q_factor_normal_dist(water_test_19_nov, True)
+#     q2 = q_factor_normal_dist(first_test_11_nov, True)
