@@ -51,6 +51,7 @@ def plot_data(x_data, y_data, title, x_label='Frequency (Hz)', y_label='Conducta
     plt.xlabel(x_label)
     plt.title(title)
     # plt.show()
+    plt.savefig('./data/network_analyzer_figures/{}'.format(title[:-3]))
 
 
 # Function to determine q factor
@@ -101,10 +102,7 @@ def execute_data_set(file_name):
     g_array = [1/z for z in [calculate_z(s) for s in s11_data]]
     q_factor = get_q_factor(g_array, frequency_data)
 
-    # Create title string to label the resulting calculations.
-    title_string = "Q-factor = {}K on G(S)-f(Hz) with for {}".format(
-        q_factor, file_name)
-
+ 
     # Error handling. Show graph if error value 0 is returned.
     if q_factor == 0:
         q_factor = 'error'
@@ -114,10 +112,16 @@ def execute_data_set(file_name):
         result = round(q_factor)
 
 
+    # Create title string to label the resulting calculations.
+    title_string = "Q-factor = {} for {}".format(
+        q_factor, file_name)
+
     
     # Save the figure
-    plot_data(x_data=frequency_data, y_data=g_array, title="Error {}".format(file_name),
+    plot_data(x_data=frequency_data, y_data=g_array, title=title_string,
               x_label='Frequency (Hz)', y_label='Conductance (S)')
+
+    
 
 
 
