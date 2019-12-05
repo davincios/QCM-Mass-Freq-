@@ -28,7 +28,7 @@ Network analyzer todos:
 
 
 def collect_data(data_file_name):
-    data = pd.read_csv('./data/network_analyzer_data/{}'.format(data_file_name),
+    data = pd.read_csv('./data/network_analyzer_data_5_dec/{}'.format(data_file_name),
                        header=None, sep=",", skiprows=3)
     data.columns = ["Frequency", "S11", "-"]
     data = data[["Frequency", "S11"]]
@@ -84,7 +84,7 @@ def get_q_factor(g, frequency_array):
     q_factor = round(q_factor, 0)
 
     # return the q factor.
-    return {'q_factor': q_factor, 'frequency_resonance': frequency_resonance }
+    return {'q_factor': q_factor, 'frequency_resonance': frequency_resonance}
 
     # print('The index of 3db cutoff is...', index_3db)
     # print('The resonance frequency is...', frequency_resonance)
@@ -95,39 +95,35 @@ def get_q_factor(g, frequency_array):
 # Execute functions.
 
 
-def execute_data_set(file_name):
+def execute_data_set(file_name, plot_data=False):
     data = collect_data(file_name)
     frequency_data, s11_data = data['Frequency'], data['S11']
 
     # Calculate Z-Impedance and convert to Conductance (G) and also store in array.
     g_array = [1/z for z in [calculate_z(s) for s in s11_data]]
     q_factor = get_q_factor(g_array, frequency_data)['q_factor']
-    frequency_resonance = get_q_factor(g_array, frequency_data)['frequency_resonance']
+    frequency_resonance = get_q_factor(g_array, frequency_data)[
+        'frequency_resonance']
 
- 
     # Error handling. Show graph if error value 0 is returned.
     if q_factor == 0:
         q_factor = 'error'
 
-
     else:
         q_factor = round(q_factor)
-
 
     # Create title string to label the resulting calculations.
     title_string = "Q-factor = {} for {}".format(
         q_factor, file_name)
 
-    
     # Save the figure
-    plot_data(x_data=frequency_data, y_data=g_array, title=title_string,
-              x_label='Frequency (Hz)', y_label='Conductance (S)')
+    if plot_data:
+        plot_data(x_data=frequency_data, y_data=g_array, title=title_string,
+                  x_label='Frequency (Hz)', y_label='Conductance (S)')
 
-    
-    # Also return the frequency 
+    # Also return the frequency
 
-    result = { 'q_factor': q_factor, 'frequency_resonance': frequency_resonance }
-
+    result = {'q_factor': q_factor, 'frequency_resonance': frequency_resonance}
 
     # Return the results
     return result
@@ -140,7 +136,7 @@ def execute_data_set(file_name):
 # execute_data_set('SETUP5 - EMPTY TUBE - M2 P.CSV')
 
 def get_file_names():
-    arr = os.listdir('./data/network_analyzer_data')
+    arr = os.listdir('./data/network_analyzer_data_5_dec')
     return arr
 
 
@@ -156,8 +152,7 @@ def calculate_and_save():
         q_results.append(result)
         print('FILE NAME: {} QFACTOR: {}'.format(file_name, result))
 
-    # Doesn't work. 
-    np.savetxt('qfactor_results.csv', file_names, delimiter=',') 
+    # Doesn't work.   np.savetxt('qfactor_results.csv', file_names, delimiter=',')
 
 
     # print(q_results)
