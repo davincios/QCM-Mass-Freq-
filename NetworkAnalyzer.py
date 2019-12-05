@@ -37,7 +37,7 @@ def collect_data(data_file_name):
 
 
 # Calculate Z.
-def calculate_z(s11, z0=20):
+def calculate_z(s11, z0=50):
     z = z0*(1+s11)/(1-s11)
 
     return z
@@ -52,6 +52,7 @@ def plot_data(x_data, y_data, title, x_label='Frequency (Hz)', y_label='Conducta
     plt.title(title)
     # plt.show()
     plt.savefig('./data/network_analyzer_figures/{}'.format(title[:-3]))
+    plt.clf()
 
 
 # Function to determine q factor
@@ -83,7 +84,7 @@ def get_q_factor(g, frequency_array):
     q_factor = round(q_factor, 0)
 
     # return the q factor.
-    return q_factor
+    return {'q_factor': q_factor, 'frequency_resonance': frequency_resonance }
 
     # print('The index of 3db cutoff is...', index_3db)
     # print('The resonance frequency is...', frequency_resonance)
@@ -100,16 +101,17 @@ def execute_data_set(file_name):
 
     # Calculate Z-Impedance and convert to Conductance (G) and also store in array.
     g_array = [1/z for z in [calculate_z(s) for s in s11_data]]
-    q_factor = get_q_factor(g_array, frequency_data)
+    q_factor = get_q_factor(g_array, frequency_data)['q_factor']
+    frequency_resonance = get_q_factor(g_array, frequency_data)['frequency_resonance']
 
  
     # Error handling. Show graph if error value 0 is returned.
     if q_factor == 0:
         q_factor = 'error'
-        result = 'error - {}'.format(file_name)
+
 
     else:
-        result = round(q_factor)
+        q_factor = round(q_factor)
 
 
     # Create title string to label the resulting calculations.
@@ -122,7 +124,9 @@ def execute_data_set(file_name):
               x_label='Frequency (Hz)', y_label='Conductance (S)')
 
     
+    # Also return the frequency 
 
+    result = { 'q_factor': q_factor, 'frequency_resonance': frequency_resonance }
 
 
     # Return the results
@@ -152,7 +156,8 @@ def calculate_and_save():
         q_results.append(result)
         print('FILE NAME: {} QFACTOR: {}'.format(file_name, result))
 
-    # np.savetxt('qfactor_results.csv', file_names, delimiter=',')
+    # Doesn't work. 
+    np.savetxt('qfactor_results.csv', file_names, delimiter=',') 
 
 
     # print(q_results)
